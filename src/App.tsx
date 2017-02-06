@@ -1,6 +1,29 @@
 import * as React from 'react';
 import './App.css';
 
+const GameHeader: React.SFC<{ winner: string, resetFunction: Function }> = ({ winner, resetFunction}) => (
+  <div>
+    <h1>{`The winner is ${winner}`}</h1>
+    <button onClick={() => resetFunction()}>Reset</button>
+  </div>
+);
+
+const BLANK_SYMBOL = '?';
+const PLAYER_ONE_SYMBOL = 'Y';
+const PLAYER_TWO_SYMBOL = 'N';
+const DRAW_SYMBOL = 'Nobody';
+
+const winningComboIndices = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6]
+];
+
 export interface AppProps {
 
 }
@@ -13,18 +36,13 @@ export interface AppState {
   winner: string | null;
 }
 
-const BLANK_SYMBOL = '?';
-const PLAYER_ONE_SYMBOL = 'Y';
-const PLAYER_TWO_SYMBOL = 'N';
-const DRAW_SYMBOL = 'Nobody';
-
 class App extends React.Component<AppProps, AppState> {
   constructor(props: AppProps) {
     super(props);
   }
 
   componentWillMount() {
-    this.setState(this.getInitialStateZZZ());
+    this.reset();
   }
 
   getInitialStateZZZ() {
@@ -69,17 +87,6 @@ class App extends React.Component<AppProps, AppState> {
   checkForWinner(): string | null {
     const board = this.state.board;
 
-    const winningComboIndices = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6]
-    ];
-
     const foundWinningCombo = winningComboIndices.find((combo: number[]) => {
       if (
         board[combo[0]] !== BLANK_SYMBOL &&
@@ -102,10 +109,15 @@ class App extends React.Component<AppProps, AppState> {
     return emptyCells.length === 0 ? DRAW_SYMBOL : null;
   }
 
+  reset() {
+    this.setState(this.getInitialStateZZZ());
+  }
+
   render() {
     return (
       <div className="app-container">
-        {this.state.winner ? <h1>{`The winner is ${this.state.winner}`}</h1> : null}
+        {this.state.winner ? <GameHeader winner={this.state.winner} resetFunction={() => this.reset()} /> : null}
+
         <div className="board">
           {this.state.board.map((cell, index) => {
             return <div key={index} onClick={() => this.handleClick(index)} className="square">{cell}</div>;
