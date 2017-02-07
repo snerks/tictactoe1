@@ -1,19 +1,12 @@
 import * as React from 'react';
 import './App.css';
 
-const GameHeader: React.SFC<{ winner: string, resetFunction: Function }> = ({ winner, resetFunction}) => (
-  <div>
-    <h1>{`The winner is ${winner}`}</h1>
-    <button onClick={() => resetFunction()}>Reset</button>
-  </div>
-);
-
 const BLANK_SYMBOL = '?';
 const PLAYER_ONE_SYMBOL = 'Y';
 const PLAYER_TWO_SYMBOL = 'N';
 const DRAW_SYMBOL = 'Nobody';
 
-const winningComboIndices = [
+const winningCombosIndices = [
   [0, 1, 2],
   [3, 4, 5],
   [6, 7, 8],
@@ -23,6 +16,23 @@ const winningComboIndices = [
   [0, 4, 8],
   [2, 4, 6]
 ];
+
+const GameBoard: React.SFC<{ board: string[], handleClick: (index: number) => void }> = ({ board, handleClick }) => (
+  <div className="board">
+    {board.map((cell, index) => {
+      return <div key={index} onClick={() => handleClick(index)} className="square">{cell}</div>;
+    })}
+  </div>
+);
+
+const GameFooter: React.SFC<{ winner: string, resetFunction: Function }> = ({ winner, resetFunction}) => (
+  <div>
+    <h1>{`The winner is ${winner}`}</h1>
+    <div>
+      <button onClick={() => resetFunction()}>Reset</button>
+    </div>
+  </div>
+);
 
 export interface AppProps {
 
@@ -45,7 +55,7 @@ class App extends React.Component<AppProps, AppState> {
     this.reset();
   }
 
-  getInitialStateZZZ() {
+  getTheInitialState() {
     return {
       playerOneSymbol: PLAYER_ONE_SYMBOL,
       playerTwoSymbol: PLAYER_TWO_SYMBOL,
@@ -87,42 +97,38 @@ class App extends React.Component<AppProps, AppState> {
   checkForWinner(): string | null {
     const board = this.state.board;
 
-    const foundWinningCombo = winningComboIndices.find((combo: number[]) => {
-      if (
-        board[combo[0]] !== BLANK_SYMBOL &&
-        // board[combo[1]] !== '' &&
-        // board[combo[2]] !== '' &&
-        board[combo[0]] === board[combo[1]] &&
-        board[combo[1]] === board[combo[2]]) {
-        return true;
-      } else {
-        return false;
-      }
+    const foundWinningComboIndices = winningCombosIndices.find((winningComboIndices: number[]) => {
+      const firstBoardCellSymbol = board[winningComboIndices[0]];
+      const secondBoardCellSymbol = board[winningComboIndices[1]];
+      const thirdBoardCellSymbol = board[winningComboIndices[2]];
+
+      return (
+        firstBoardCellSymbol !== BLANK_SYMBOL &&
+        firstBoardCellSymbol === secondBoardCellSymbol &&
+        firstBoardCellSymbol === thirdBoardCellSymbol);
     });
 
-    if (foundWinningCombo) {
+    if (foundWinningComboIndices) {
       return this.state.currentTurnSymbol;
     }
 
-    const emptyCells = this.state.board.filter((cell: string) => cell === BLANK_SYMBOL);
+    const blankSymbolCells = this.state.board.filter(
+      (cellSymbol: string) => cellSymbol === BLANK_SYMBOL
+    );
 
-    return emptyCells.length === 0 ? DRAW_SYMBOL : null;
+    return blankSymbolCells.length === 0 ? DRAW_SYMBOL : null;
   }
 
   reset() {
-    this.setState(this.getInitialStateZZZ());
+    this.setState(this.getTheInitialState());
   }
 
   render() {
     return (
       <div className="app-container">
-        {this.state.winner ? <GameHeader winner={this.state.winner} resetFunction={() => this.reset()} /> : null}
+        <GameBoard board={this.state.board} handleClick={(index: number) => this.handleClick(index)} />
 
-        <div className="board">
-          {this.state.board.map((cell, index) => {
-            return <div key={index} onClick={() => this.handleClick(index)} className="square">{cell}</div>;
-          })}
-        </div>
+        {this.state.winner ? <GameFooter winner={this.state.winner} resetFunction={() => this.reset()} /> : null}
       </div>
     );
   }
